@@ -1,6 +1,7 @@
 package sensor
 
 import (
+	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -13,8 +14,8 @@ func TestSensor(t *testing.T) {
 	RunSpecs(t, "Sensor")
 }
 
-const testDeviceId = "28-0123456789ab"
-const testValueFile = "/sys/bus/w1/devices/" + testDeviceId + "/w1_slave"
+const testDeviceID = "28-0123456789ab"
+
 const sampleData1 = `37 01 4b 46 7f ff 09 10 26 : crc=26 YES
 37 01 4b 46 7f ff 09 10 26 t=19437
 `
@@ -29,24 +30,41 @@ var _ = Describe("a sensor", func() {
 	})
 
 	Describe("reading the temperature", func() {
+		var sensor Sensor
+
+		BeforeEach(func() {
+			populateValueFile(testDeviceID, sampleData1)
+			var err error
+			sensor, err = New(testDeviceID)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
 		It("should return the temperature", func() {
-			file, err := fs.Create(testValueFile)
-			Expect(err).NotTo(HaveOccurred())
-			_, err = file.Write([]byte(sampleData1))
-			Expect(err).NotTo(HaveOccurred())
+			Expect(sensor.Temperature()).To(Equal(19.437))
+		})
 
-			tfile, err := fs.Open(testValueFile)
-			Expect(err).NotTo(HaveOccurred())
-			b := make([]byte, 100)
-			_, err = tfile.Read(b)
-			Expect(err).NotTo(HaveOccurred())
+		It("should allow multiple reads", func() {
+			sensor.Temperature()
+			Expect(sensor.Temperature()).To(Equal(19.437))
+		})
 
-			Expect(b).To(ContainSubstring("t=19437"))
-
+		It("should handle changed file contents", func() {
+			sensor.Temperature()
+			populateValueFile(testDeviceID, sampleData2)
+			Expect(sensor.Temperature()).To(Equal(18.062))
 		})
 	})
-
-	It("should pass", func() {
-		Expect(true).To(BeTrue())
-	})
 })
+
+func populateValueFile(deviceID, contents string) {
+	valueFilePath := w1DevicesPath + deviceID + "/w1_slave"
+	file, err := fs.OpenFile(valueFilePath, os.O_RDWR, 0644)
+	if err != nil {
+		if os.IsNotExist(err) {
+			file, err = fs.Create(valueFilePath)
+		}
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	}
+	_, err = file.Write([]byte(contents))
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+}
