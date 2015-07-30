@@ -3,6 +3,7 @@ package sensor
 import (
 	"os"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,35 +24,102 @@ const sampleData2 = `21 01 4b 46 7f ff 0f 10 4b : crc=4b YES
 21 01 4b 46 7f ff 0f 10 4b t=18062
 `
 
+type dummyTicker struct {
+	duration time.Duration
+	C        chan time.Time
+	notify   chan struct{}
+	stopped  bool
+}
+
+func (t dummyTicker) Channel() <-chan time.Time {
+	select {
+	case t.notify <- struct{}{}:
+	default:
+	}
+	return t.C
+}
+func (t *dummyTicker) Stop() {
+	t.stopped = true
+}
+
 var _ = Describe("a sensor", func() {
+	var (
+		tkr *dummyTicker
+	)
 
 	BeforeEach(func() {
 		fs = &afero.MemMapFs{}
+
+		newTicker = func(d time.Duration) ticker {
+			tkr = &dummyTicker{
+				duration: d,
+				C:        make(chan time.Time, 1),
+				notify:   make(chan struct{}, 1),
+			}
+			return tkr
+		}
 	})
 
-	Describe("reading the temperature", func() {
-		var sensor Sensor
+	Describe("constructing a sensor", func() {
+		var (
+			sensor Sensor
+			err    error
+		)
 
 		BeforeEach(func() {
 			populateValueFile(testDeviceID, sampleData1)
-			var err error
 			sensor, err = New(testDeviceID)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("should return the temperature", func() {
+		It("should read the initial temperature", func() {
 			Expect(sensor.Temperature()).To(Equal(19.437))
 		})
 
-		It("should allow multiple reads", func() {
-			sensor.Temperature()
-			Expect(sensor.Temperature()).To(Equal(19.437))
+		It("should start a ticker to poll the temperature every minute", func(done Done) {
+			<-tkr.notify
+			Expect(tkr.duration).To(Equal(time.Minute))
+
+			close(done)
 		})
 
-		It("should handle changed file contents", func() {
-			sensor.Temperature()
+		It("should update the temperature on each tick", func(done Done) {
+			<-tkr.notify
+			Expect(sensor.Temperature()).To(Equal(19.437))
+
 			populateValueFile(testDeviceID, sampleData2)
+			tkr.C <- time.Now()
+			<-tkr.notify
 			Expect(sensor.Temperature()).To(Equal(18.062))
+
+			populateValueFile(testDeviceID, sampleData1)
+			tkr.C <- time.Now()
+			<-tkr.notify
+			Expect(sensor.Temperature()).To(Equal(19.437))
+
+			close(done)
+		})
+	})
+
+	Describe("closing a sensor", func() {
+		var (
+			sensor Sensor
+			err    error
+		)
+
+		BeforeEach(func() {
+			populateValueFile(testDeviceID, sampleData1)
+			sensor, err = New(testDeviceID)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should stop the ticker", func(done Done) {
+			<-tkr.notify
+
+			sensor.Close()
+			Expect(tkr.stopped).To(BeTrue())
+
+			close(done)
 		})
 	})
 })
