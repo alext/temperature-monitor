@@ -20,19 +20,15 @@ type Sensor interface {
 }
 
 type sensor struct {
-	valueFile afero.File
-	temp      float64
-	closeCh   chan struct{}
+	deviceID string
+	temp     float64
+	closeCh  chan struct{}
 }
 
 func New(deviceID string) (Sensor, error) {
-	file, err := fs.Open(w1DevicesPath + deviceID + "/w1_slave")
-	if err != nil {
-		return nil, err
-	}
 	s := &sensor{
-		valueFile: file,
-		closeCh:   make(chan struct{}),
+		deviceID: deviceID,
+		closeCh:  make(chan struct{}),
 	}
 	s.readTemperature()
 	go s.readLoop()
@@ -60,14 +56,18 @@ func (s *sensor) Temperature() float64 {
 func (s *sensor) Close() {
 	s.closeCh <- struct{}{}
 	<-s.closeCh
-	s.valueFile.Close()
 }
 
 var temperatureRegexp = regexp.MustCompile(`t=(\d+)`)
 
 func (s *sensor) readTemperature() {
-	s.valueFile.Seek(0, 0)
-	data, err := ioutil.ReadAll(s.valueFile)
+	file, err := fs.Open(w1DevicesPath + s.deviceID + "/w1_slave")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer file.Close()
+	data, err := ioutil.ReadAll(file)
 	if err != nil {
 		fmt.Println(err)
 		return
