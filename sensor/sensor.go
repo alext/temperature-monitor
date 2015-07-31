@@ -1,8 +1,8 @@
 package sensor
 
 import (
-	"fmt"
 	"io/ioutil"
+	"log"
 	"regexp"
 	"strconv"
 	"time"
@@ -63,24 +63,22 @@ var temperatureRegexp = regexp.MustCompile(`t=(\d+)`)
 func (s *sensor) readTemperature() {
 	file, err := fs.Open(w1DevicesPath + s.deviceID + "/w1_slave")
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("[sensor:%s] Error opening device file: %s", s.deviceID, err.Error())
 		return
 	}
 	defer file.Close()
 	data, err := ioutil.ReadAll(file)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("[sensor:%s] Error reading device: %s", s.deviceID, err.Error())
 		return
 	}
 	matches := temperatureRegexp.FindStringSubmatch(string(data))
 	if matches == nil {
-		fmt.Println("No Match")
+		log.Printf("[sensor:%s] Failed to match temperature in data:\n%s", s.deviceID, string(data))
 		return
 	}
-	value, err := strconv.Atoi(matches[1])
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+
+	// discard error because it can't fail due to \d in regexp
+	value, _ := strconv.Atoi(matches[1])
 	s.temp = float64(value) / 1000
 }
