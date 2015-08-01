@@ -1,7 +1,6 @@
 package webserver
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -24,13 +23,7 @@ func (srv *Webserver) sensorIndex(w http.ResponseWriter, req *http.Request) {
 	for name, s := range srv.sensors {
 		data[name] = newJSONSensor(s)
 	}
-	jsonData, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonData)
+	writeJSON(w, data)
 }
 
 func (srv *Webserver) sensorGet(w http.ResponseWriter, req *http.Request) {
@@ -40,13 +33,7 @@ func (srv *Webserver) sensorGet(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	jsonData, err := json.MarshalIndent(newJSONSensor(s), "", "  ")
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonData)
+	writeJSON(w, newJSONSensor(s))
 }
 
 type jsonSensor struct {
