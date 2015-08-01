@@ -59,6 +59,36 @@ var _ = Describe("the webserver", func() {
 			Expect(resp.Code).To(Equal(http.StatusNotFound))
 		})
 	})
+
+	Describe("sensors index", func() {
+		var (
+			s1 *dummySensor
+			s2 *dummySensor
+		)
+
+		BeforeEach(func() {
+			s1 = &dummySensor{}
+			s1.SetTemperature(18.345)
+			s2 = &dummySensor{}
+			s2.SetTemperature(19.542)
+			server.AddSensor("one", s1)
+			server.AddSensor("two", s2)
+		})
+
+		It("returns details of all sensors", func() {
+			resp := doGetRequest(server, "/sensors")
+			Expect(resp.Code).To(Equal(http.StatusOK))
+			Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
+
+			data := decodeJsonResponse(resp)
+			Expect(data).To(HaveKey("one"))
+			Expect(data).To(HaveKey("two"))
+			data1 := data["one"].(map[string]interface{})
+			Expect(data1["temperature"]).To(BeNumerically("~", 18.345))
+			data2 := data["two"].(map[string]interface{})
+			Expect(data2["temperature"]).To(BeNumerically("~", 19.542))
+		})
+	})
 })
 
 func doGetRequest(server http.Handler, path string) *httptest.ResponseRecorder {

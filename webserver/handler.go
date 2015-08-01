@@ -12,8 +12,25 @@ func (srv *Webserver) buildHandler() http.Handler {
 	r.Methods("GET").Path("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte("OK\n"))
 	})
+	r.Methods("GET").Path("/sensors").HandlerFunc(srv.sensorIndex)
 	r.Methods("GET").Path("/sensors/{sensor_id}").HandlerFunc(srv.sensorGet)
 	return r
+}
+
+func (srv *Webserver) sensorIndex(w http.ResponseWriter, req *http.Request) {
+	data := make(map[string]interface{})
+	for name, s := range srv.sensors {
+		data[name] = map[string]interface{}{
+			"temperature": s.Temperature(),
+		}
+	}
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonData)
 }
 
 func (srv *Webserver) sensorGet(w http.ResponseWriter, req *http.Request) {
