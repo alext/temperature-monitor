@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"github.com/alext/temperature-monitor/sensor"
 )
 
 func (srv *Webserver) buildHandler() http.Handler {
@@ -18,11 +20,9 @@ func (srv *Webserver) buildHandler() http.Handler {
 }
 
 func (srv *Webserver) sensorIndex(w http.ResponseWriter, req *http.Request) {
-	data := make(map[string]interface{})
+	data := make(map[string]*jsonSensor)
 	for name, s := range srv.sensors {
-		data[name] = map[string]interface{}{
-			"temperature": s.Temperature(),
-		}
+		data[name] = newJSONSensor(s)
 	}
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
@@ -40,13 +40,21 @@ func (srv *Webserver) sensorGet(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	jsonData, err := json.MarshalIndent(map[string]interface{}{
-		"temperature": s.Temperature(),
-	}, "", "  ")
+	jsonData, err := json.MarshalIndent(newJSONSensor(s), "", "  ")
 	if err != nil {
 		writeError(w, err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonData)
+}
+
+type jsonSensor struct {
+	Temp float64 `json:"temperature"`
+}
+
+func newJSONSensor(s sensor.Sensor) *jsonSensor {
+	return &jsonSensor{
+		Temp: s.Temperature(),
+	}
 }
