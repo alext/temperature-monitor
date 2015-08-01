@@ -15,13 +15,13 @@ var fs afero.Fs = &afero.OsFs{}
 const w1DevicesPath = "/sys/bus/w1/devices/"
 
 type Sensor interface {
-	Temperature() float64
+	Temperature() int
 	Close()
 }
 
 type sensor struct {
 	deviceID string
-	temp     float64
+	temp     int
 	closeCh  chan struct{}
 }
 
@@ -49,7 +49,7 @@ func (s *sensor) readLoop() {
 	}
 }
 
-func (s *sensor) Temperature() float64 {
+func (s *sensor) Temperature() int {
 	return s.temp
 }
 
@@ -79,6 +79,5 @@ func (s *sensor) readTemperature() {
 	}
 
 	// discard error because it can't fail due to \d in regexp
-	value, _ := strconv.Atoi(matches[1])
-	s.temp = float64(value) / 1000
+	s.temp, _ = strconv.Atoi(matches[1])
 }

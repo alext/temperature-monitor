@@ -45,13 +45,13 @@ var _ = Describe("the webserver", func() {
 		})
 
 		It("returns the sensor value as JSON", func() {
-			sensor.SetTemperature(15.643)
+			sensor.SetTemperature(15643)
 			resp := doGetRequest(server, "/sensors/one")
 			Expect(resp.Code).To(Equal(http.StatusOK))
 			Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
 
 			data := decodeJsonResponse(resp)
-			Expect(data["temperature"]).To(BeNumerically("~", 15.643))
+			Expect(data["temperature"]).To(BeEquivalentTo(15643))
 		})
 
 		It("returns 404 for a non-existent sensor", func() {
@@ -68,9 +68,9 @@ var _ = Describe("the webserver", func() {
 
 		BeforeEach(func() {
 			s1 = &dummySensor{}
-			s1.SetTemperature(18.345)
+			s1.SetTemperature(18345)
 			s2 = &dummySensor{}
-			s2.SetTemperature(19.542)
+			s2.SetTemperature(19542)
 			server.AddSensor("one", s1)
 			server.AddSensor("two", s2)
 		})
@@ -84,9 +84,9 @@ var _ = Describe("the webserver", func() {
 			Expect(data).To(HaveKey("one"))
 			Expect(data).To(HaveKey("two"))
 			data1 := data["one"].(map[string]interface{})
-			Expect(data1["temperature"]).To(BeNumerically("~", 18.345))
+			Expect(data1["temperature"]).To(BeEquivalentTo(18345))
 			data2 := data["two"].(map[string]interface{})
-			Expect(data2["temperature"]).To(BeNumerically("~", 19.542))
+			Expect(data2["temperature"]).To(BeEquivalentTo(19542))
 		})
 	})
 })

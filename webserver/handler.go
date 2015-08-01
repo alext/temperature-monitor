@@ -37,7 +37,7 @@ func (srv *Webserver) sensorGet(w http.ResponseWriter, req *http.Request) {
 }
 
 type jsonSensor struct {
-	Temp float64 `json:"temperature"`
+	Temp int `json:"temperature"`
 }
 
 func newJSONSensor(s sensor.Sensor) *jsonSensor {
