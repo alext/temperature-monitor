@@ -2,36 +2,44 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
-	"time"
+
+	"github.com/spf13/afero"
 
 	"github.com/alext/temperature-monitor/sensor"
+	"github.com/alext/temperature-monitor/webserver"
+)
+
+var fs afero.Fs = &afero.OsFs{}
+
+const (
+	defaultConfigFile = "./config.json"
+	defaultPort       = 8081
 )
 
 func main() {
-	sensorID := flag.String("sensorid", "", "The ID of the sensor device")
 	logDest := flag.String("log", "STDERR", "Where to log to - STDOUT, STDERR or a filename")
+	configFile := flag.String("config-file", "./config.json", "Path to the config file")
 
 	flag.Parse()
 
 	setupLogging(*logDest)
 
-	if *sensorID == "" {
-		log.Fatal("no sensorid provided")
-	}
-
-	sensor, err := sensor.New(*sensorID)
+	config, err := loadConfig(*configFile)
 	if err != nil {
-		log.Fatal("Error opening sensor : ", err)
+		log.Fatal("Error opening config file : ", err)
 	}
 
-	for {
-		temp := sensor.Temperature()
-		fmt.Printf("Temperature: %.3f\n", temp)
+	srv := webserver.New(config.Port)
+	err = addSensors(config, srv)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		time.Sleep(10 * time.Second)
+	err = srv.Run()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -48,4 +56,15 @@ func setupLogging(destination string) {
 		}
 		log.SetOutput(file)
 	}
+}
+
+func addSensors(config *config, srv *webserver.Webserver) error {
+	for name, sensorConfig := range config.Sensors {
+		s, err := sensor.New(sensorConfig.ID)
+		if err != nil {
+			return err
+		}
+		srv.AddSensor(name, s)
+	}
+	return nil
 }
