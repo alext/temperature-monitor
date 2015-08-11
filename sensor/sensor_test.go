@@ -74,7 +74,8 @@ var _ = Describe("a sensor", func() {
 		})
 
 		It("should read the initial temperature", func() {
-			Expect(sensor.Temperature()).To(Equal(19437))
+			temperature, _ := sensor.Read()
+			Expect(temperature).To(Equal(19437))
 		})
 
 		It("should start a ticker to poll the temperature every minute", func(done Done) {
@@ -86,17 +87,40 @@ var _ = Describe("a sensor", func() {
 
 		It("should update the temperature on each tick", func(done Done) {
 			<-tkr.notify
-			Expect(sensor.Temperature()).To(Equal(19437))
+			temperature, _ := sensor.Read()
+			Expect(temperature).To(Equal(19437))
 
 			populateValueFile(testDeviceID, sampleData2)
 			tkr.C <- time.Now()
 			<-tkr.notify
-			Expect(sensor.Temperature()).To(Equal(18062))
+			temperature, _ = sensor.Read()
+			Expect(temperature).To(Equal(18062))
 
 			populateValueFile(testDeviceID, sampleData1)
 			tkr.C <- time.Now()
 			<-tkr.notify
-			Expect(sensor.Temperature()).To(Equal(19437))
+			temperature, _ = sensor.Read()
+			Expect(temperature).To(Equal(19437))
+
+			close(done)
+		})
+
+		It("should track when the temperature was last updated", func(done Done) {
+			<-tkr.notify
+			populateValueFile(testDeviceID, sampleData2)
+
+			tickTime := time.Now().Add(-15 * time.Minute)
+			tkr.C <- tickTime
+			<-tkr.notify
+			_, updatedAt := sensor.Read()
+			Expect(updatedAt).To(Equal(tickTime))
+
+			populateValueFile(testDeviceID, sampleData1)
+			tickTime = time.Now().Add(-3 * time.Minute)
+			tkr.C <- tickTime
+			<-tkr.notify
+			_, updatedAt = sensor.Read()
+			Expect(updatedAt).To(Equal(tickTime))
 
 			close(done)
 		})

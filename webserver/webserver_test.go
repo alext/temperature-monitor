@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -44,14 +45,19 @@ var _ = Describe("the webserver", func() {
 			server.AddSensor("one", sensor)
 		})
 
-		It("returns the sensor value as JSON", func() {
-			sensor.SetTemperature(15643)
+		It("returns the sensor data as JSON", func() {
+			updateTime := time.Now().Add(-3 * time.Minute)
+			sensor.SetTemperature(15643, updateTime)
+
 			resp := doGetRequest(server, "/sensors/one")
 			Expect(resp.Code).To(Equal(http.StatusOK))
 			Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
 
 			data := decodeJsonResponse(resp)
 			Expect(data["temperature"]).To(BeEquivalentTo(15643))
+
+			updateTimeStr, _ := updateTime.MarshalText()
+			Expect(data["updated_at"]).To(Equal(string(updateTimeStr)))
 		})
 
 		It("returns 404 for a non-existent sensor", func() {
@@ -68,9 +74,9 @@ var _ = Describe("the webserver", func() {
 
 		BeforeEach(func() {
 			s1 = &dummySensor{}
-			s1.SetTemperature(18345)
+			s1.SetTemperature(18345, time.Now())
 			s2 = &dummySensor{}
-			s2.SetTemperature(19542)
+			s2.SetTemperature(19542, time.Now())
 			server.AddSensor("one", s1)
 			server.AddSensor("two", s2)
 		})

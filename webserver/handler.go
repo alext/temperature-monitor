@@ -2,6 +2,7 @@ package webserver
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -37,11 +38,14 @@ func (srv *Webserver) sensorGet(w http.ResponseWriter, req *http.Request) {
 }
 
 type jsonSensor struct {
-	Temp int `json:"temperature"`
+	Temperature int       `json:"temperature"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 func newJSONSensor(s sensor.Sensor) *jsonSensor {
+	temperature, updatedAt := s.Read()
 	return &jsonSensor{
-		Temp: s.Temperature(),
+		Temperature: temperature,
+		UpdatedAt:   updatedAt,
 	}
 }

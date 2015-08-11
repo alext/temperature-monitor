@@ -16,15 +16,16 @@ var fs afero.Fs = &afero.OsFs{}
 const w1DevicesPath = "/sys/bus/w1/devices/"
 
 type Sensor interface {
-	Temperature() int
+	Read() (int, time.Time)
 	Close()
 }
 
 type sensor struct {
-	deviceID string
-	mux      sync.RWMutex
-	temp     int
-	closeCh  chan struct{}
+	deviceID  string
+	mux       sync.RWMutex
+	temp      int
+	updatedAt time.Time
+	closeCh   chan struct{}
 }
 
 func New(deviceID string) (Sensor, error) {
@@ -32,7 +33,7 @@ func New(deviceID string) (Sensor, error) {
 		deviceID: deviceID,
 		closeCh:  make(chan struct{}),
 	}
-	s.readTemperature()
+	s.readTemperature(time.Now())
 	go s.readLoop()
 	return s, nil
 }
@@ -41,8 +42,8 @@ func (s *sensor) readLoop() {
 	t := newTicker(time.Minute)
 	for {
 		select {
-		case <-t.Channel():
-			s.readTemperature()
+		case t := <-t.Channel():
+			s.readTemperature(t)
 		case <-s.closeCh:
 			t.Stop()
 			close(s.closeCh)
@@ -51,10 +52,10 @@ func (s *sensor) readLoop() {
 	}
 }
 
-func (s *sensor) Temperature() int {
+func (s *sensor) Read() (int, time.Time) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
-	return s.temp
+	return s.temp, s.updatedAt
 }
 
 func (s *sensor) Close() {
@@ -64,7 +65,7 @@ func (s *sensor) Close() {
 
 var temperatureRegexp = regexp.MustCompile(`t=(\d+)`)
 
-func (s *sensor) readTemperature() {
+func (s *sensor) readTemperature(updateTime time.Time) {
 	file, err := fs.Open(w1DevicesPath + s.deviceID + "/w1_slave")
 	if err != nil {
 		log.Printf("[sensor:%s] Error opening device file: %s", s.deviceID, err.Error())
@@ -87,4 +88,5 @@ func (s *sensor) readTemperature() {
 
 	// discard error because it can't fail due to \d in regexp
 	s.temp, _ = strconv.Atoi(matches[1])
+	s.updatedAt = updateTime
 }
