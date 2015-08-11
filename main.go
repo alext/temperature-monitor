@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -24,7 +25,10 @@ func main() {
 
 	flag.Parse()
 
-	setupLogging(*logDest)
+	err := setupLogging(*logDest)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	config, err := loadConfig(*configFile)
 	if err != nil {
@@ -43,19 +47,20 @@ func main() {
 	}
 }
 
-func setupLogging(destination string) {
+func setupLogging(destination string) error {
 	switch destination {
 	case "STDERR":
 		log.SetOutput(os.Stderr)
 	case "STDOUT":
 		log.SetOutput(os.Stdout)
 	default:
-		file, err := os.OpenFile(destination, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
+		file, err := fs.OpenFile(destination, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
 		if err != nil {
-			log.Fatalf("Error opening log %s: %s", destination, err.Error())
+			return fmt.Errorf("Error opening log %s: %s", destination, err.Error())
 		}
 		log.SetOutput(file)
 	}
+	return nil
 }
 
 func addSensors(config *config, srv *webserver.Webserver) error {
