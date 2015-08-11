@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/spf13/afero"
+	"github.com/alext/afero"
 )
 
 var fs afero.Fs = &afero.OsFs{}

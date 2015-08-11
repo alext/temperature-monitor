@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 
+	"github.com/alext/afero"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/spf13/afero"
 )
 
 var _ = Describe("Parsing the config file", func() {

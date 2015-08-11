@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/spf13/afero"
+	"github.com/alext/afero"
 
 	"github.com/alext/temperature-monitor/sensor"
 	"github.com/alext/temperature-monitor/webserver"
