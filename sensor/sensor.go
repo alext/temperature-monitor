@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/alext/afero"
@@ -21,6 +22,7 @@ type Sensor interface {
 
 type sensor struct {
 	deviceID string
+	mux      sync.RWMutex
 	temp     int
 	closeCh  chan struct{}
 }
@@ -50,6 +52,8 @@ func (s *sensor) readLoop() {
 }
 
 func (s *sensor) Temperature() int {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
 	return s.temp
 }
 
@@ -77,6 +81,9 @@ func (s *sensor) readTemperature() {
 		log.Printf("[sensor:%s] Failed to match temperature in data:\n%s", s.deviceID, string(data))
 		return
 	}
+
+	s.mux.Lock()
+	defer s.mux.Unlock()
 
 	// discard error because it can't fail due to \d in regexp
 	s.temp, _ = strconv.Atoi(matches[1])
