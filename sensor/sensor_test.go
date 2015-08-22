@@ -45,17 +45,19 @@ func (t *dummyTicker) Stop() {
 
 var _ = Describe("a sensor", func() {
 	var (
-		tkr *dummyTicker
+		tkr       *dummyTicker
+		tkrNotify chan struct{}
 	)
 
 	BeforeEach(func() {
 		fs = &afero.MemMapFs{}
+		tkrNotify = make(chan struct{}, 1)
 
 		newTicker = func(d time.Duration) ticker {
 			tkr = &dummyTicker{
 				duration: d,
 				C:        make(chan time.Time, 1),
-				notify:   make(chan struct{}, 1),
+				notify:   tkrNotify,
 			}
 			return tkr
 		}
@@ -72,6 +74,9 @@ var _ = Describe("a sensor", func() {
 			sensor, err = New(testDeviceID)
 			Expect(err).NotTo(HaveOccurred())
 		})
+		AfterEach(func() {
+			sensor.Close()
+		})
 
 		It("should read the initial temperature", func() {
 			temperature, _ := sensor.Read()
@@ -79,26 +84,26 @@ var _ = Describe("a sensor", func() {
 		})
 
 		It("should start a ticker to poll the temperature every minute", func(done Done) {
-			<-tkr.notify
+			<-tkrNotify
 			Expect(tkr.duration).To(Equal(time.Minute))
 
 			close(done)
 		})
 
 		It("should update the temperature on each tick", func(done Done) {
-			<-tkr.notify
+			<-tkrNotify
 			temperature, _ := sensor.Read()
 			Expect(temperature).To(Equal(19437))
 
 			populateValueFile(testDeviceID, sampleData2)
 			tkr.C <- time.Now()
-			<-tkr.notify
+			<-tkrNotify
 			temperature, _ = sensor.Read()
 			Expect(temperature).To(Equal(18062))
 
 			populateValueFile(testDeviceID, sampleData1)
 			tkr.C <- time.Now()
-			<-tkr.notify
+			<-tkrNotify
 			temperature, _ = sensor.Read()
 			Expect(temperature).To(Equal(19437))
 
@@ -106,19 +111,19 @@ var _ = Describe("a sensor", func() {
 		})
 
 		It("should track when the temperature was last updated", func(done Done) {
-			<-tkr.notify
+			<-tkrNotify
 			populateValueFile(testDeviceID, sampleData2)
 
 			tickTime := time.Now().Add(-15 * time.Minute)
 			tkr.C <- tickTime
-			<-tkr.notify
+			<-tkrNotify
 			_, updatedAt := sensor.Read()
 			Expect(updatedAt).To(Equal(tickTime))
 
 			populateValueFile(testDeviceID, sampleData1)
 			tickTime = time.Now().Add(-3 * time.Minute)
 			tkr.C <- tickTime
-			<-tkr.notify
+			<-tkrNotify
 			_, updatedAt = sensor.Read()
 			Expect(updatedAt).To(Equal(tickTime))
 
@@ -139,7 +144,7 @@ var _ = Describe("a sensor", func() {
 		})
 
 		It("should stop the ticker", func(done Done) {
-			<-tkr.notify
+			<-tkrNotify
 
 			sensor.Close()
 			Expect(tkr.stopped).To(BeTrue())
