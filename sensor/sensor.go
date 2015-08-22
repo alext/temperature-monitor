@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alext/afero"
+	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/alext/afero"
 )
 
 var fs afero.Fs = &afero.OsFs{}

@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/alext/afero"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/alext/afero"
+	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo"
+	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega"
 )
 
 var _ = Describe("Parsing the config file", func() {

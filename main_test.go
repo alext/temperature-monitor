@@ -9,10 +9,10 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo"
+	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega"
 
-	"github.com/alext/afero"
+	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/alext/afero"
 )
 
 func TestMain(t *testing.T) {

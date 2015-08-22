@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/alext/afero"
+	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/alext/afero"
 
 	"github.com/alext/temperature-monitor/sensor"
 	"github.com/alext/temperature-monitor/webserver"
