@@ -21,7 +21,7 @@ const (
 
 func main() {
 	logDest := flag.String("log", "STDERR", "Where to log to - STDOUT, STDERR or a filename")
-	configFile := flag.String("config-file", "./config.json", "Path to the config file")
+	configFile := flag.String("config-file", defaultConfigFile, "Path to the config file")
 
 	flag.Parse()
 
