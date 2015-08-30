@@ -83,10 +83,15 @@ func (s *sensor) readTemperature(updateTime time.Time) {
 		return
 	}
 
+	temp, err := strconv.Atoi(matches[1])
+	if err != nil {
+		log.Printf("[sensor:%s] Error parsing temperature value '%s': %s", s.deviceID, matches[1], err.Error())
+		return
+	}
+
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	// discard error because it can't fail due to \d in regexp
-	s.temp, _ = strconv.Atoi(matches[1])
+	s.temp = temp
 	s.updatedAt = updateTime
 }
