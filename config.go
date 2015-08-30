@@ -23,7 +23,7 @@ func loadConfig(filename string) (*config, error) {
 	file, err := fs.Open(filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Printf("Config file '%s' not found, ignoring", filename)
+			log.Printf("[main] Config file '%s' not found, ignoring", filename)
 			return c, nil
 		}
 		return nil, err

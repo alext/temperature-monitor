@@ -3,6 +3,7 @@ package webserver
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/alext/temperature-monitor/sensor"
@@ -28,6 +29,7 @@ func (srv *Webserver) AddSensor(name string, s sensor.Sensor) {
 }
 
 func (srv *Webserver) Run() error {
+	log.Printf("[webserver] listening on %s", srv.listenURL)
 	return http.ListenAndServe(srv.listenURL, srv)
 }
 
