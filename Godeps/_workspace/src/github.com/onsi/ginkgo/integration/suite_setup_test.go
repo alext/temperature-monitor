@@ -3,9 +3,9 @@ package integration_test
 import (
 	"strings"
 
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega/gexec"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("SuiteSetup", func() {

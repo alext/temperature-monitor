@@ -1,19 +1,19 @@
 package specrunner_test
 
 import (
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/specrunner"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/types"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/internal/specrunner"
+	"github.com/onsi/ginkgo/types"
+	. "github.com/onsi/gomega"
 
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/config"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/codelocation"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/containernode"
-	Failer "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/failer"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/leafnodes"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/spec"
-	Writer "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/writer"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/reporters"
+	"github.com/onsi/ginkgo/config"
+	"github.com/onsi/ginkgo/internal/codelocation"
+	"github.com/onsi/ginkgo/internal/containernode"
+	Failer "github.com/onsi/ginkgo/internal/failer"
+	"github.com/onsi/ginkgo/internal/leafnodes"
+	"github.com/onsi/ginkgo/internal/spec"
+	Writer "github.com/onsi/ginkgo/internal/writer"
+	"github.com/onsi/ginkgo/reporters"
 )
 
 var noneFlag = types.FlagTypeNone

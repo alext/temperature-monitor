@@ -3,12 +3,12 @@ package reporters_test
 import (
 	"bytes"
 	"fmt"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/config"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/codelocation"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/reporters"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/types"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/config"
+	"github.com/onsi/ginkgo/internal/codelocation"
+	"github.com/onsi/ginkgo/reporters"
+	"github.com/onsi/ginkgo/types"
+	. "github.com/onsi/gomega"
 	"time"
 )
 

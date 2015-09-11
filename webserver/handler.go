@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 
 	"github.com/alext/temperature-monitor/sensor"
 )

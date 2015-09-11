@@ -3,10 +3,10 @@ package assertion_test
 import (
 	"errors"
 
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega/internal/assertion"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega/internal/fakematcher"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/internal/assertion"
+	"github.com/onsi/gomega/internal/fakematcher"
 )
 
 var _ = Describe("Assertion", func() {

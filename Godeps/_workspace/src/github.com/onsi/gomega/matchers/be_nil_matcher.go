@@ -1,6 +1,6 @@
 package matchers
 
-import "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega/format"
+import "github.com/onsi/gomega/format"
 
 type BeNilMatcher struct {
 }

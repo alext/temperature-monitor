@@ -1,11 +1,11 @@
 package matchers_test
 
 import (
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega/matchers"
 	"time"
+	. "github.com/onsi/gomega/matchers"
 
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("BeSent", func() {

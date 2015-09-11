@@ -1,13 +1,13 @@
 package remote_test
 
 import (
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/config"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/remote"
-	st "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/reporters/stenographer"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/types"
+	"github.com/onsi/ginkgo/config"
+	. "github.com/onsi/ginkgo/internal/remote"
+	st "github.com/onsi/ginkgo/reporters/stenographer"
+	"github.com/onsi/ginkgo/types"
 	"time"
 )
 

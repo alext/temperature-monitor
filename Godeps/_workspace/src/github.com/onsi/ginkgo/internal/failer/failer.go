@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/types"
+	"github.com/onsi/ginkgo/types"
 )
 
 type Failer struct {

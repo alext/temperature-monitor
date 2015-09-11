@@ -3,7 +3,7 @@ package watch
 import (
 	"fmt"
 
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/ginkgo/testsuite"
+	"github.com/onsi/ginkgo/ginkgo/testsuite"
 )
 
 type SuiteErrors map[testsuite.TestSuite]error

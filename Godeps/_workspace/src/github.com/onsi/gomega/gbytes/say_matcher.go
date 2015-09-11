@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega/format"
+	"github.com/onsi/gomega/format"
 )
 
 //Objects satisfying the BufferProvider can be used with the Say matcher.

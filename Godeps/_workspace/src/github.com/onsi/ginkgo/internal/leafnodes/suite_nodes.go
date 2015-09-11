@@ -1,8 +1,8 @@
 package leafnodes
 
 import (
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/failer"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/types"
+	"github.com/onsi/ginkgo/internal/failer"
+	"github.com/onsi/ginkgo/types"
 	"time"
 )
 

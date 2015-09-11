@@ -12,9 +12,9 @@ package remote
 import (
 	"time"
 
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/config"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/reporters/stenographer"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/types"
+	"github.com/onsi/ginkgo/config"
+	"github.com/onsi/ginkgo/reporters/stenographer"
+	"github.com/onsi/ginkgo/types"
 )
 
 type configAndSuite struct {

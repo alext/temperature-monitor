@@ -1,12 +1,12 @@
 package gexec_test
 
 import (
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega/gexec"
 	"os/exec"
 	"time"
+	. "github.com/onsi/gomega/gexec"
 
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 type NeverExits struct{}

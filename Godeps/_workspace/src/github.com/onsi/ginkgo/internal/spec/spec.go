@@ -5,9 +5,9 @@ import (
 	"io"
 	"time"
 
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/containernode"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/leafnodes"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/types"
+	"github.com/onsi/ginkgo/internal/containernode"
+	"github.com/onsi/ginkgo/internal/leafnodes"
+	"github.com/onsi/ginkgo/types"
 )
 
 type Spec struct {

@@ -1,13 +1,13 @@
 package leafnodes_test
 
 import (
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo"
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/types"
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/types"
+	. "github.com/onsi/gomega"
 
-	. "github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/leafnodes"
+	. "github.com/onsi/ginkgo/internal/leafnodes"
 
-	"github.com/alext/temperature-monitor/Godeps/_workspace/src/github.com/onsi/ginkgo/internal/codelocation"
+	"github.com/onsi/ginkgo/internal/codelocation"
 )
 
 var _ = Describe("Setup Nodes", func() {
