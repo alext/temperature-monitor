@@ -22,8 +22,14 @@ const (
 func main() {
 	logDest := flag.String("log", "STDERR", "Where to log to - STDOUT, STDERR or a filename")
 	configFile := flag.String("config-file", defaultConfigFile, "Path to the config file")
+	returnVersion := flag.Bool("version", false, "return version information and exit")
 
 	flag.Parse()
+
+	if *returnVersion {
+		fmt.Printf("temperature-monitor %s\n", versionInfo())
+		os.Exit(0)
+	}
 
 	err := setupLogging(*logDest)
 	if err != nil {
