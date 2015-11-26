@@ -1,4 +1,4 @@
-.PHONY: build test clean
+.PHONY: build test clean save_deps
 
 BINARY := temperature-monitor
 IMPORT_BASE := github.com/alext
@@ -23,3 +23,6 @@ test: build
 
 clean:
 	rm -rf $(BINARY)
+
+save_deps:
+	godep save $$(go list ./... | grep -v '/vendor/')
