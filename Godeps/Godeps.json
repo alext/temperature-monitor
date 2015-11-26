@@ -2,13 +2,11 @@
 	"ImportPath": "github.com/alext/temperature-monitor",
 	"GoVersion": "go1.5.1",
 	"Packages": [
-		"./..."
+		"github.com/alext/temperature-monitor",
+		"github.com/alext/temperature-monitor/sensor",
+		"github.com/alext/temperature-monitor/webserver"
 	],
 	"Deps": [
-		{
-			"ImportPath": "github.com/alext/afero",
-			"Rev": "d459e62d603a6413bb09dd6d1fb9b35ec734eb95"
-		},
 		{
 			"ImportPath": "github.com/gorilla/context",
 			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
@@ -26,6 +24,10 @@
 			"ImportPath": "github.com/onsi/gomega",
 			"Comment": "v1.0-50-gd6c945f",
 			"Rev": "d6c945f9fdbf6cad99e85b0feff591caa268e0db"
+		},
+		{
+			"ImportPath": "github.com/spf13/afero",
+			"Rev": "12fcb8c83df3df3966e373715df910ac01a10e5d"
 		}
 	]
 }

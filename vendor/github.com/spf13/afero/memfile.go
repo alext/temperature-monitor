@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path"
 	"sync"
 	"sync/atomic"
 )
@@ -33,8 +34,11 @@ type MemDir interface {
 }
 
 type InMemoryFile struct {
+	// atomic requires 64-bit alignment for struct field access
+	at           int64
+	readDirCount int64
+
 	sync.Mutex
-	at      int64
 	name    string
 	data    []byte
 	memDir  MemDir
@@ -50,6 +54,7 @@ func MemFileCreate(name string) *InMemoryFile {
 
 func (f *InMemoryFile) Open() error {
 	atomic.StoreInt64(&f.at, 0)
+	atomic.StoreInt64(&f.readDirCount, 0)
 	f.Lock()
 	f.closed = false
 	f.Unlock()
@@ -57,7 +62,6 @@ func (f *InMemoryFile) Open() error {
 }
 
 func (f *InMemoryFile) Close() error {
-	atomic.StoreInt64(&f.at, 0)
 	f.Lock()
 	f.closed = true
 	f.Unlock()
@@ -72,37 +76,43 @@ func (f *InMemoryFile) Stat() (os.FileInfo, error) {
 	return &InMemoryFileInfo{f}, nil
 }
 
+func (f *InMemoryFile) Sync() error {
+	return nil
+}
+
 func (f *InMemoryFile) Readdir(count int) (res []os.FileInfo, err error) {
-	files := f.memDir.Files()
-	limit := len(files)
+	var outLength int64
 
-	if len(files) == 0 {
-		return
-	}
-
+	f.Lock()
+	files := f.memDir.Files()[f.readDirCount:]
 	if count > 0 {
-		limit = count
+		if len(files) < count {
+			outLength = int64(len(files))
+		} else {
+			outLength = int64(count)
+		}
+		if len(files) == 0 {
+			err = io.EOF
+		}
+	} else {
+		outLength = int64(len(files))
+	}
+	f.readDirCount += outLength
+	f.Unlock()
+
+	res = make([]os.FileInfo, outLength)
+	for i := range res {
+		res[i], _ = files[i].Stat()
 	}
 
-	if len(files) < limit {
-		err = io.EOF
-	}
-
-	res = make([]os.FileInfo, f.memDir.Len())
-
-	i := 0
-	for _, file := range f.memDir.Files() {
-		res[i], _ = file.Stat()
-		i++
-	}
-	return res, nil
+	return res, err
 }
 
 func (f *InMemoryFile) Readdirnames(n int) (names []string, err error) {
 	fi, err := f.Readdir(n)
 	names = make([]string, len(fi))
 	for i, f := range fi {
-		names[i] = f.Name()
+		_, names[i] = path.Split(f.Name())
 	}
 	return names, err
 }
@@ -202,7 +212,10 @@ type InMemoryFileInfo struct {
 }
 
 // Implements os.FileInfo
-func (s *InMemoryFileInfo) Name() string       { return s.file.Name() }
+func (s *InMemoryFileInfo) Name() string {
+	_, name := path.Split(s.file.Name())
+	return name
+}
 func (s *InMemoryFileInfo) Mode() os.FileMode  { return s.file.mode }
 func (s *InMemoryFileInfo) ModTime() time.Time { return s.file.modtime }
 func (s *InMemoryFileInfo) IsDir() bool        { return s.file.dir }

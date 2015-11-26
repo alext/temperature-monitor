@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alext/afero"
+	"github.com/spf13/afero"
 )
 
 var fs afero.Fs = &afero.OsFs{}

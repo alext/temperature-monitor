@@ -16,9 +16,11 @@ package afero
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -64,8 +66,16 @@ func (m MemDirMap) Files() (files []File) {
 	for _, f := range m {
 		files = append(files, f)
 	}
+	sort.Sort(filesSorter(files))
 	return files
 }
+
+type filesSorter []File
+
+// implement sort.Interface for []File
+func (s filesSorter) Len() int           { return len(s) }
+func (s filesSorter) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s filesSorter) Less(i, j int) bool { return s[i].Name() < s[j].Name() }
 
 func (m MemDirMap) Names() (names []string) {
 	for x := range m {
@@ -78,70 +88,109 @@ func (MemMapFs) Name() string { return "MemMapFS" }
 
 func (m *MemMapFs) Create(name string) (File, error) {
 	m.lock()
-	m.getData()[name] = MemFileCreate(name)
+	file := MemFileCreate(name)
+	m.getData()[name] = file
+	m.registerWithParent(file)
 	m.unlock()
-	m.registerDirs(m.getData()[name])
-	return m.getData()[name], nil
+	return file, nil
 }
 
-func (m *MemMapFs) registerDirs(f File) {
-	var x = f.Name()
-	for x != "/" {
-		f := m.registerWithParent(f)
-		if f == nil {
-			break
+func (m *MemMapFs) unRegisterWithParent(fileName string) {
+	f, err := m.lockfreeOpen(fileName)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Println("Open err:", err)
 		}
-		x = f.Name()
+		return
 	}
-}
-
-func (m *MemMapFs) unRegisterWithParent(f File) File {
 	parent := m.findParent(f)
+	if parent == nil {
+		log.Fatal("parent of ", f.Name(), " is nil")
+	}
 	pmem := parent.(*InMemoryFile)
 	pmem.memDir.Remove(f)
-	return parent
 }
 
 func (m *MemMapFs) findParent(f File) File {
-	dirs, _ := path.Split(f.Name())
-	if len(dirs) > 1 {
-		_, parent := path.Split(path.Clean(dirs))
-		if len(parent) > 0 {
-			pfile, err := m.Open(parent)
-			if err != nil {
-				return pfile
-			}
+	pdir, _ := path.Split(f.Name())
+	pdir = path.Clean(pdir)
+	pfile, err := m.lockfreeOpen(pdir)
+	if err != nil {
+		return nil
+	}
+	return pfile
+}
+
+func (m *MemMapFs) registerWithParent(f File) {
+	if f == nil {
+		return
+	}
+	parent := m.findParent(f)
+	if parent == nil {
+		pdir := filepath.Dir(path.Clean(f.Name()))
+		err := m.lockfreeMkdir(pdir, 0777)
+		if err != nil {
+			//log.Println("Mkdir error:", err)
+			return
 		}
+		parent, err = m.lockfreeOpen(pdir)
+		if err != nil {
+			//log.Println("Open after Mkdir error:", err)
+			return
+		}
+	}
+	pmem := parent.(*InMemoryFile)
+
+	// TODO(mbertschler): memDir is only nil when it was not made with Mkdir
+	// or lockfreeMkdir. In this case the parent is also not a real directory.
+	// This currently only happens for the file ".".
+	// This is a quick hack to make the library usable with relative paths.
+	if pmem.memDir == nil {
+		pmem.dir = true
+		pmem.memDir = &MemDirMap{}
+	}
+
+	pmem.memDir.Add(f)
+}
+
+func (m *MemMapFs) lockfreeMkdir(name string, perm os.FileMode) error {
+	x, ok := m.getData()[name]
+	if ok {
+		// Only return ErrFileExists if it's a file, not a directory.
+		i, err := x.Stat()
+		if !i.IsDir() {
+			return ErrFileExists
+		}
+		if err != nil {
+			return err
+		}
+	} else {
+		item := &InMemoryFile{name: name, memDir: &MemDirMap{}, dir: true}
+		m.getData()[name] = item
+		m.registerWithParent(item)
 	}
 	return nil
 }
 
-func (m *MemMapFs) registerWithParent(f File) File {
-	if f == nil {
-		return nil
-	}
-	parent := m.findParent(f)
-	if parent != nil {
-		pmem := parent.(*InMemoryFile)
-		pmem.memDir.Add(f)
-	} else {
-		pdir := filepath.Dir(path.Clean(f.Name()))
-		m.Mkdir(pdir, 0777)
-	}
-	return parent
-}
-
 func (m *MemMapFs) Mkdir(name string, perm os.FileMode) error {
 	m.rlock()
-	_, ok := m.getData()[name]
+	x, ok := m.getData()[name]
 	m.runlock()
 	if ok {
-		return ErrFileExists
+		// Only return ErrFileExists if it's a file, not a directory.
+		i, err := x.Stat()
+		if !i.IsDir() {
+			return ErrFileExists
+		}
+		if err != nil {
+			return err
+		}
 	} else {
 		m.lock()
-		m.getData()[name] = &InMemoryFile{name: name, memDir: &MemDirMap{}, dir: true}
+		item := &InMemoryFile{name: name, memDir: &MemDirMap{}, dir: true}
+		m.getData()[name] = item
+		m.registerWithParent(item)
 		m.unlock()
-		m.registerDirs(m.getData()[name])
 	}
 	return nil
 }
@@ -159,6 +208,19 @@ func (m *MemMapFs) Open(name string) (File, error) {
 	}
 	m.runlock()
 
+	if ok {
+		return f, nil
+	} else {
+		return nil, ErrFileNotFound
+	}
+}
+
+func (m *MemMapFs) lockfreeOpen(name string) (File, error) {
+	f, ok := m.getData()[name]
+	ff, ok := f.(*InMemoryFile)
+	if ok {
+		ff.Open()
+	}
 	if ok {
 		return f, nil
 	} else {
@@ -196,6 +258,7 @@ func (m *MemMapFs) Remove(name string) error {
 	defer m.unlock()
 
 	if _, ok := m.getData()[name]; ok {
+		m.unRegisterWithParent(name)
 		delete(m.getData(), name)
 	} else {
 		return &os.PathError{"remove", name, os.ErrNotExist}
@@ -204,8 +267,13 @@ func (m *MemMapFs) Remove(name string) error {
 }
 
 func (m *MemMapFs) RemoveAll(path string) error {
+	m.lock()
+	m.unRegisterWithParent(path)
+	m.unlock()
+
 	m.rlock()
 	defer m.runlock()
+
 	for p, _ := range m.getData() {
 		if strings.HasPrefix(p, path) {
 			m.runlock()
@@ -225,8 +293,12 @@ func (m *MemMapFs) Rename(oldname, newname string) error {
 		if _, ok := m.getData()[newname]; !ok {
 			m.runlock()
 			m.lock()
-			m.getData()[newname] = m.getData()[oldname]
+			m.unRegisterWithParent(oldname)
+			file := m.getData()[oldname].(*InMemoryFile)
 			delete(m.getData(), oldname)
+			file.name = newname
+			m.getData()[newname] = file
+			m.registerWithParent(file)
 			m.unlock()
 			m.rlock()
 		} else {

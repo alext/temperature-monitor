@@ -2,7 +2,7 @@
 
 A FileSystem Abstraction System for Go
 
-[![Build Status](https://travis-ci.org/spf13/afero.png)](https://travis-ci.org/spf13/afero)
+[![Build Status](https://travis-ci.org/spf13/afero.svg)](https://travis-ci.org/spf13/afero) [![GoDoc](https://godoc.org/github.com/spf13/afero?status.svg)](https://godoc.org/github.com/spf13/afero)
 
 ## Overview
 
@@ -56,12 +56,12 @@ mocking and to speed up unnecessary disk io when persistence isn’t
 necessary. It is fully concurrent and will work within go routines
 safely.
 
-### MemFile
+#### InMemoryFile
 
 As part of MemMapFs, Afero also provides an atomic, fully concurrent memory
 backed file implementation. This can be used in other memory backed file
 systems with ease. Plans are to add a radix tree memory stored file
-system using MemFile. 
+system using InMemoryFile. 
 
 ## Usage
 
@@ -100,18 +100,38 @@ the ability to drop in other filesystems as desired.
 Then throughout your functions and methods use the methods familiar
 already from the OS package.
 
-Methods Available:
+File System Methods Available:
 
-       Create(name string) : File, error
-       Mkdir(name string, perm os.FileMode) : error
-       MkdirAll(path string, perm os.FileMode) : error
-       Name() : string
-       Open(name string) : File, error
-       OpenFile(name string, flag int, perm os.FileMode) : File, error
-       Remove(name string) : error
-       RemoveAll(path string) : error
-       Rename(oldname, newname string) : error
-       Stat(name string) : os.FileInfo, error
+	Chmod(name string, mode os.FileMode) : error
+	Chtimes(name string, atime time.Time, mtime time.Time) : error
+	Create(name string) : File, error
+	Mkdir(name string, perm os.FileMode) : error
+	MkdirAll(path string, perm os.FileMode) : error
+	Name() : string
+	Open(name string) : File, error
+	OpenFile(name string, flag int, perm os.FileMode) : File, error
+	Remove(name string) : error
+	RemoveAll(path string) : error
+	Rename(oldname, newname string) : error
+	Stat(name string) : os.FileInfo, error
+
+File Interfaces and Methods Available:
+
+	io.Closer
+	io.Reader
+	io.ReaderAt
+	io.Seeker
+	io.Writer
+	io.WriterAt
+	
+	Name() : string
+	Readdir(count int) : []os.FileInfo, error
+	Readdirnames(n int) : []string, error
+	Stat() : os.FileInfo, error
+	Sync() : error
+	Truncate(size int64) : error
+	WriteString(s string) : ret int, err error
+       
 
 In our case we would call `AppFs.Open()` as an example because that is how we’ve defined to
 access our filesystem.
@@ -146,6 +166,13 @@ Any Afero FileSystem can be used as an httpFs.
 
 
 ## Release Notes
+* **0.9.0** 2015.11.05
+  * New Walk function similar to filepath.Walk
+  * MemMapFs.OpenFile handles O_CREATE, O_APPEND, O_TRUNC
+  * MemMapFs.Remove now really deletes the file
+  * InMemoryFile.Readdir and Readdirnames work correctly
+  * InMemoryFile functions lock it for concurrent access
+  * Test suite improvements
 * **0.8.0** 2014.10.28
   * First public version
   * Interfaces feel ready for people to build using
@@ -167,6 +194,7 @@ Names in no particular order:
 
 * [spf13](https://github.com/spf13)
 * [jaqx0r](https://github.com/jaqx0r)
+* [mbertschler](https://github.com/mbertschler)
 
 ## License
 

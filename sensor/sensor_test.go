@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/alext/afero"
+	"github.com/spf13/afero"
 )
 
 func TestSensor(t *testing.T) {
