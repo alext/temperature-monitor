@@ -110,6 +110,20 @@ var _ = Describe("a sensor", func() {
 			close(done)
 		})
 
+		It("should handle negative temperatures", func(done Done) {
+			<-tkrNotify
+
+			negativeData := `f6 ff 55 00 7f ff 0c 10 47 : crc=47 YES
+f6 ff 55 00 7f ff 0c 10 47 t=-625`
+			populateValueFile(testDeviceID, negativeData)
+			tkr.C <- time.Now()
+			<-tkrNotify
+			temperature, _ := sensor.Read()
+			Expect(temperature).To(Equal(-625))
+
+			close(done)
+		})
+
 		It("should track when the temperature was last updated", func(done Done) {
 			<-tkrNotify
 			populateValueFile(testDeviceID, sampleData2)

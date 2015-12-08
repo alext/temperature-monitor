@@ -63,7 +63,7 @@ func (s *sensor) Close() {
 	<-s.closeCh
 }
 
-var temperatureRegexp = regexp.MustCompile(`t=(\d+)`)
+var temperatureRegexp = regexp.MustCompile(`t=(-?\d+)`)
 
 func (s *sensor) readTemperature(updateTime time.Time) {
 	file, err := fs.Open(w1DevicesPath + s.deviceID + "/w1_slave")
