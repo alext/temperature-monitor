@@ -156,13 +156,9 @@ var _ = Describe("a sensor", func() {
 
 func populateValueFile(deviceID, contents string) {
 	valueFilePath := w1DevicesPath + deviceID + "/w1_slave"
-	file, err := fs.OpenFile(valueFilePath, os.O_RDWR, 0644)
-	if err != nil {
-		if os.IsNotExist(err) {
-			file, err = fs.Create(valueFilePath)
-		}
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	}
+	file, err := fs.OpenFile(valueFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
 	_, err = file.Write([]byte(contents))
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 }
