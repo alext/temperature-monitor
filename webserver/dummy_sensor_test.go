@@ -14,8 +14,3 @@ func (s *dummySensor) Read() (int, time.Time) {
 
 func (s *dummySensor) Close() {
 }
-
-func (s *dummySensor) SetTemperature(value int, updated time.Time) {
-	s.temp = value
-	s.updateTime = updated
-}

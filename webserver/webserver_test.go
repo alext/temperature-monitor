@@ -47,7 +47,7 @@ var _ = Describe("the webserver", func() {
 
 		It("returns the sensor data as JSON", func() {
 			updateTime := time.Now().Add(-3 * time.Minute)
-			sensor.SetTemperature(15643, updateTime)
+			sensor.temp, sensor.updateTime = 15643, updateTime
 
 			resp := doGetRequest(server, "/sensors/one")
 			Expect(resp.Code).To(Equal(http.StatusOK))
@@ -74,9 +74,9 @@ var _ = Describe("the webserver", func() {
 
 		BeforeEach(func() {
 			s1 = &dummySensor{}
-			s1.SetTemperature(18345, time.Now())
+			s1.temp, s1.updateTime = 18345, time.Now()
 			s2 = &dummySensor{}
-			s2.SetTemperature(19542, time.Now())
+			s2.temp, s2.updateTime = 19542, time.Now()
 			server.AddSensor("one", s1)
 			server.AddSensor("two", s2)
 		})
