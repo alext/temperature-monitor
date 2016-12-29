@@ -71,7 +71,7 @@ func setupLogging(destination string) error {
 
 func addSensors(config *config, srv *webserver.Webserver) error {
 	for name, sensorConfig := range config.Sensors {
-		s, err := sensor.New(sensorConfig.ID)
+		s, err := sensor.NewW1Sensor(sensorConfig.ID)
 		if err != nil {
 			return err
 		}

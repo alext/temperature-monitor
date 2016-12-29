@@ -2,7 +2,6 @@ package sensor
 
 import (
 	"os"
-	"testing"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -10,11 +9,6 @@ import (
 
 	"github.com/spf13/afero"
 )
-
-func TestSensor(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Sensor")
-}
 
 const testDeviceID = "28-0123456789ab"
 
@@ -43,7 +37,7 @@ func (t *dummyTicker) Stop() {
 	t.stopped = true
 }
 
-var _ = Describe("a sensor", func() {
+var _ = Describe("a w1 sensor", func() {
 	var (
 		tkr       *dummyTicker
 		tkrNotify chan struct{}
@@ -71,7 +65,7 @@ var _ = Describe("a sensor", func() {
 
 		BeforeEach(func() {
 			populateValueFile(testDeviceID, sampleData1)
-			sensor, err = New(testDeviceID)
+			sensor, err = NewW1Sensor(testDeviceID)
 			Expect(err).NotTo(HaveOccurred())
 		})
 		AfterEach(func() {
@@ -153,7 +147,7 @@ f6 ff 55 00 7f ff 0c 10 47 t=-625`
 
 		BeforeEach(func() {
 			populateValueFile(testDeviceID, sampleData1)
-			sensor, err = New(testDeviceID)
+			sensor, err = NewW1Sensor(testDeviceID)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
