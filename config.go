@@ -12,7 +12,8 @@ type config struct {
 }
 
 type sensorConfig struct {
-	ID string `json:"id"`
+	Type string `json:"type"`
+	ID   string `json:"id"`
 }
 
 func loadConfig(filename string) (*config, error) {

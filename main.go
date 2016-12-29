@@ -71,9 +71,20 @@ func setupLogging(destination string) error {
 
 func addSensors(config *config, srv *webserver.Webserver) error {
 	for name, sensorConfig := range config.Sensors {
-		s, err := sensor.NewW1Sensor(sensorConfig.ID)
-		if err != nil {
-			return err
+		var (
+			s   sensor.Sensor
+			err error
+		)
+		switch sensorConfig.Type {
+		case "w1":
+			s, err = sensor.NewW1Sensor(sensorConfig.ID)
+			if err != nil {
+				return err
+			}
+		case "push":
+			s = sensor.NewPushSensor(sensorConfig.ID)
+		default:
+			return fmt.Errorf("Unrecognised sensor type: '%s'", sensorConfig.Type)
 		}
 		srv.AddSensor(name, s)
 	}
