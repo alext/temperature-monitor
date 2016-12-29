@@ -1,6 +1,8 @@
 package webserver
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -16,6 +18,7 @@ func (srv *Webserver) buildHandler() http.Handler {
 	})
 	r.Methods("GET").Path("/sensors").HandlerFunc(srv.sensorIndex)
 	r.Methods("GET").Path("/sensors/{sensor_id}").HandlerFunc(srv.sensorGet)
+	r.Methods("PUT").Path("/sensors/{sensor_id}").HandlerFunc(srv.sensorPut)
 	return r
 }
 
@@ -35,6 +38,36 @@ func (srv *Webserver) sensorGet(w http.ResponseWriter, req *http.Request) {
 	}
 
 	writeJSON(w, newJSONSensor(s))
+}
+
+func (srv *Webserver) sensorPut(w http.ResponseWriter, req *http.Request) {
+	s, ok := srv.sensors[mux.Vars(req)["sensor_id"]]
+	if !ok {
+		write404(w)
+		return
+	}
+	ss, ok := s.(sensor.SettableSensor)
+	if !ok {
+		http.Error(w, "Non-writable sensor", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var data struct {
+		Temp *int `json:"temperature"`
+	}
+	err := json.NewDecoder(req.Body).Decode(&data)
+	if err != nil {
+		writeError(w, err, http.StatusBadRequest)
+		return
+	}
+	if data.Temp == nil {
+		writeError(w, fmt.Errorf("Missing temperature data in request"), http.StatusBadRequest)
+		return
+	}
+
+	ss.Set(*data.Temp, time.Now())
+
+	writeJSON(w, newJSONSensor(ss))
 }
 
 type jsonSensor struct {

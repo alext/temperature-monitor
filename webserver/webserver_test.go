@@ -1,6 +1,7 @@
 package webserver_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/alext/temperature-monitor/sensor"
 	"github.com/alext/temperature-monitor/webserver"
 )
 
@@ -66,6 +68,56 @@ var _ = Describe("the webserver", func() {
 		})
 	})
 
+	Describe("setting a sensor", func() {
+		var (
+			s1 sensor.SettableSensor
+		)
+
+		BeforeEach(func() {
+			s1 = sensor.NewPushSensor("something")
+			s1.Set(12345, time.Now().Add(-1*time.Hour))
+			server.AddSensor("one", s1)
+		})
+
+		It("updates the sensor with the given details", func() {
+			data := map[string]interface{}{
+				"temperature": 15643,
+			}
+			resp := doJSONPutRequest(server, "/sensors/one", data)
+			Expect(resp.Code).To(Equal(http.StatusOK))
+			temp, updated := s1.Read()
+			Expect(temp).To(Equal(15643))
+			Expect(updated).To(BeTemporally("~", time.Now(), 100*time.Millisecond))
+
+			respData := decodeJsonResponse(resp)
+			Expect(respData["temperature"]).To(BeEquivalentTo(15643))
+		})
+
+		It("returns a 400 for invalid data", func() {
+			data := map[string]interface{}{
+				"foo": "bar",
+			}
+			resp := doJSONPutRequest(server, "/sensors/one", data)
+			Expect(resp.Code).To(Equal(http.StatusBadRequest))
+			temp, _ := s1.Read()
+			Expect(temp).To(Equal(12345))
+		})
+
+		It("returns 405 for a non-writable sensor", func() {
+			s2 := &dummySensor{}
+			s2.temp, s2.updateTime = 12345, time.Now().Add(-1*time.Hour)
+			server.AddSensor("two", s2)
+
+			data := map[string]interface{}{
+				"temperature": 15643,
+			}
+			resp := doJSONPutRequest(server, "/sensors/two", data)
+			Expect(resp.Code).To(Equal(405))
+			temp, _ := s1.Read()
+			Expect(temp).To(Equal(12345))
+		})
+	})
+
 	Describe("sensors index", func() {
 		var (
 			s1 *dummySensor
@@ -98,7 +150,17 @@ var _ = Describe("the webserver", func() {
 })
 
 func doGetRequest(server http.Handler, path string) *httptest.ResponseRecorder {
-	req, _ := http.NewRequest("GET", "http://example.com"+path, nil)
+	req := httptest.NewRequest("GET", "http://example.com"+path, nil)
+	w := httptest.NewRecorder()
+	server.ServeHTTP(w, req)
+	return w
+}
+
+func doJSONPutRequest(server http.Handler, path string, bodyData interface{}) *httptest.ResponseRecorder {
+	var body bytes.Buffer
+	err := json.NewEncoder(&body).Encode(bodyData)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	req := httptest.NewRequest("PUT", "http://example.com"+path, &body)
 	w := httptest.NewRecorder()
 	server.ServeHTTP(w, req)
 	return w
