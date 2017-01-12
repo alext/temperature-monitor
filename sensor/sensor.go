@@ -10,7 +10,6 @@ var fs afero.Fs = &afero.OsFs{}
 
 type Sensor interface {
 	Read() (int, time.Time)
-	Close()
 }
 
 type SettableSensor interface {

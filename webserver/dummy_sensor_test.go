@@ -11,6 +11,3 @@ type dummySensor struct {
 func (s *dummySensor) Read() (int, time.Time) {
 	return s.temp, s.updateTime
 }
-
-func (s *dummySensor) Close() {
-}
