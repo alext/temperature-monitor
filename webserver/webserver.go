@@ -50,10 +50,12 @@ func writeJSON(w http.ResponseWriter, data interface{}) {
 func write404(w http.ResponseWriter) {
 	http.Error(w, "Not found", http.StatusNotFound)
 }
+
 func writeError(w http.ResponseWriter, err error, optionalCode ...int) {
 	code := http.StatusInternalServerError
 	if len(optionalCode) > 0 {
 		code = optionalCode[0]
 	}
+	log.Printf("[webserver] Error %d: %s", code, err.Error())
 	http.Error(w, err.Error(), code)
 }

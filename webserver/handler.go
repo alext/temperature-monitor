@@ -41,14 +41,15 @@ func (srv *Webserver) sensorGet(w http.ResponseWriter, req *http.Request) {
 }
 
 func (srv *Webserver) sensorPut(w http.ResponseWriter, req *http.Request) {
-	s, ok := srv.sensors[mux.Vars(req)["sensor_id"]]
+	sensorID := mux.Vars(req)["sensor_id"]
+	s, ok := srv.sensors[sensorID]
 	if !ok {
 		write404(w)
 		return
 	}
 	ss, ok := s.(sensor.SettableSensor)
 	if !ok {
-		http.Error(w, "Non-writable sensor", http.StatusMethodNotAllowed)
+		writeError(w, fmt.Errorf("Non-writable sensor %s", sensorID), http.StatusMethodNotAllowed)
 		return
 	}
 

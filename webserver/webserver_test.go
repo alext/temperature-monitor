@@ -3,6 +3,8 @@ package webserver_test
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,6 +19,7 @@ import (
 
 func TestWebServer(t *testing.T) {
 	RegisterFailHandler(Fail)
+	log.SetOutput(ioutil.Discard)
 	RunSpecs(t, "Webserver")
 }
 
